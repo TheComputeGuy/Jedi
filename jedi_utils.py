@@ -1,5 +1,29 @@
 from models.base_class import Commit
 import time
+import re
+
+
+# Variables used to fix git mistakes in filenames that contain non-ascii characters
+octals = re.compile('((?:\\\\\d\d\d)+)')
+three_digits = re.compile('\d\d\d')
+
+
+def fix_git_trash_strings(git_trash):
+        ''' 
+        Git diff.a_path and b_path replace non-ascii chacters by their
+        octal values and replace it as characters in the string. This function 
+        fixes this BS.
+        '''
+        git_trash = git_trash.lstrip('\"').rstrip('\"')
+        match = re.split(octals, git_trash)
+        pretty_strings = []
+        for words in match:
+            if re.match(octals, words):
+                ints = [int(x, 8) for x in re.findall(three_digits, words)]
+                pretty_strings.append(bytes(ints).decode())
+            else:
+                pretty_strings.append(words)
+        return ''.join(pretty_strings)
 
 
 def get_commit_list(repo):

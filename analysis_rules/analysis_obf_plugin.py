@@ -1,4 +1,4 @@
-from constants.varsfile import *
+from constants.jedi_constants import *
 from models.base_analysis_class import BaseAnalysisClass
 from models.base_class import PluginFile
 import re

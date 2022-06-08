@@ -10,13 +10,21 @@ import argparse
 import git
 import magic
 from multiprocessing import Pool, cpu_count
-from models.base_class import Website, FileMetadata
+from analysis_rules.analysis_downloader_plugin import Analysis_Downloader_Plugin
+from analysis_rules.analysis_err_report import Analysis_Err_Report
+from analysis_rules.analysis_fc_plugin import Analysis_FC_Plugin
 from analysis_rules.analysis_obf_plugin import Analysis_Obf_Plugin
+from analysis_rules.analysis_shell_detect import Analysis_Shell_Detect
+from models.base_class import Website, FileMetadata
 from constants.states import State
 from jedi_utils import *
 
 mal_plugin_analyses = [
-    Analysis_Obf_Plugin(),  # Obfuscation
+    Analysis_Obf_Plugin(),         # Obfuscation
+    Analysis_Shell_Detect(),       # Webshells in plugins
+    Analysis_Err_Report(),         # Disable Error Reporting
+    Analysis_FC_Plugin(),          # Function Construction
+    Analysis_Downloader_Plugin(),  # Downloaders
 ]
 
 
@@ -77,25 +85,6 @@ class Framework:
             website_path = website_path + "/"
         self.website = Website(website_path)
         self.commits = []
-        # Variables used to fix git mistakes in filenames that contain non-ascii characters
-        self.octals = re.compile('((?:\\\\\d\d\d)+)')
-        self.three_digits = re.compile('\d\d\d')
-
-    def fix_git_trash_strings(self, git_trash):
-        ''' Git diff.a_path and b_path replace non-ascii chacters by their
-        octal values and replace it as characters in the string. This function 
-        fixes thhis BS.
-        '''
-        git_trash = git_trash.lstrip('\"').rstrip('\"')
-        match = re.split(self.octals, git_trash)
-        pretty_strings = []
-        for words in match:
-            if re.match(self.octals, words):
-                ints = [int(x, 8) for x in re.findall(self.three_digits, words)]
-                pretty_strings.append(bytes(ints).decode())
-            else:
-                pretty_strings.append(words)
-        return ''.join(pretty_strings)
 
     def get_file_list(self, commit_obj, init):
         exclude = ['.codeguard', '.git', '.gitattributes']
@@ -150,12 +139,12 @@ class Framework:
                     If a file is renamed, the old name is considered 'deleted' in the new commit
                     '''
                     # Clean up git python string madness for non-ascii characters
-                    if re.search(self.octals, diff.a_path):
-                        diff_a_path = self.fix_git_trash_strings(diff.a_path)
+                    if re.search(octals, diff.a_path):
+                        diff_a_path = fix_git_trash_strings(diff.a_path)
                     else:
                         diff_a_path = diff.a_path
-                    if re.search(self.octals, diff.b_path):
-                        diff_b_path = self.fix_git_trash_strings(diff.b_path)
+                    if re.search(octals, diff.b_path):
+                        diff_b_path = fix_git_trash_strings(diff.b_path)
                     else:
                         diff_b_path = diff.b_path
 
@@ -281,10 +270,8 @@ class Framework:
 
                 mal_detect_output = worker_pool.map(do_malicious_file_detection, files_to_analyze)
 
-                if os.path.exists('./tmp'):  # rm FC pass's tempfile
-                    os.remove('./tmp')
-                if os.path.exists('./urls'):  # rm SEO pass's tempfile
-                    os.remove('./urls')
+                if os.path.exists('./fc_pass_tmp'):  # rm FC pass's tempfile
+                    os.remove('./fc_pass_tmp')
 
                 # Update the malicious file info on the commit object
                 total_mal_files_count = 0
@@ -301,7 +288,7 @@ class Framework:
                     commit_obj.tot_mal_pfiles = total_mal_files_count
 
                 # This breaks after first commit. Use for debugging purposes
-                break
+                # break
 
             # postProcessWebsite
             for analysis in mal_plugin_analyses:
