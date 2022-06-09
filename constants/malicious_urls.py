@@ -1,6 +1,6 @@
 m_urls = [
     "http://mainwall.org",
-    "geolite.maxmind.com",
+    "http://geolite.maxmind.com",
     "http://wordpress.cloudapp.net",
     "http://geoip2.io",
     "http://stopspam.io",

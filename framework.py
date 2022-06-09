@@ -265,8 +265,11 @@ class Framework:
 
                 files_to_analyze = []
                 for file_obj in files:
+                    file_obj.extension = get_extension(file_obj.filename)
                     if (file_obj.state in [State.A.value, State.M.value, State.R.value]) and ('php' in file_obj.mime_type):
                         files_to_analyze.append(file_obj)
+
+                commit_obj.num_files_analysed = len(files_to_analyze)
 
                 mal_detect_output = worker_pool.map(do_malicious_file_detection, files_to_analyze)
 
@@ -275,17 +278,20 @@ class Framework:
 
                 # Update the malicious file info on the commit object
                 total_mal_files_count = 0
+                mal_files = []
                 for file_obj in mal_detect_output:
                     if (file_obj.state in [State.A.value, State.M.value, State.R.value, State.NC.value]) and (
                             'php' in file_obj.mime_type):
                         if file_obj.suspicious_tags:
                             total_mal_files_count += 1
+                            mal_files.append(file_obj)
                     if file_obj.state in [State.D.value]:
                         file_obj.suspicious_tags = []
 
                 # print("Total number of mal files", tot_mal_files, c_obj.commit_id)
                 if total_mal_files_count:
                     commit_obj.tot_mal_pfiles = total_mal_files_count
+                    commit_obj.mal_files = mal_files
 
                 # This breaks after first commit. Use for debugging purposes
                 # break
@@ -318,7 +324,6 @@ if __name__ == "__main__":
     website_path = args.website_path
     start = time.time()
 
-    print("Starting parsing at " + str(start))
     framework = Framework(website_path=website_path)
     framework.run()
 

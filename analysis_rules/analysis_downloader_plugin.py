@@ -1,6 +1,6 @@
 from constants.malicious_urls import *
 from constants.clean_urls import *
-from vt import *
+from utils.vt import *
 from models.base_analysis_class import BaseAnalysisClass
 from sys import argv, path
 from models.base_class import *

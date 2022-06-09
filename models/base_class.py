@@ -53,7 +53,9 @@ class Commit():
                 self.num_active_plugins = None
                 self.has_mal_plugins = None
                 self.mal_pnames = []
+                self.mal_files = []
                 self.num_files = None
+                self.num_files_analysed = None
                 self.plugins_changed= None
                 self.num_mal_plugins = 0
                 self.tot_mal_pfiles = 0
