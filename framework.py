@@ -11,6 +11,7 @@ import git
 import magic
 from multiprocessing import Pool, cpu_count
 from analysis_rules.analysis_downloader_plugin import Analysis_Downloader_Plugin
+from analysis_rules.analysis_drupalgeddon import Analysis_Drupalgeddon
 from analysis_rules.analysis_err_report import Analysis_Err_Report
 from analysis_rules.analysis_fc_plugin import Analysis_FC_Plugin
 from analysis_rules.analysis_obf_plugin import Analysis_Obf_Plugin
@@ -20,6 +21,7 @@ from constants.states import State
 from jedi_utils import *
 
 mal_plugin_analyses = [
+    Analysis_Drupalgeddon(),        # Drupalgeddon payload
     Analysis_Obf_Plugin(),         # Obfuscation
     Analysis_Shell_Detect(),       # Webshells in plugins
     Analysis_Err_Report(),         # Disable Error Reporting

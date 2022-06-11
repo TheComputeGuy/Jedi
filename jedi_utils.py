@@ -101,14 +101,17 @@ def process_outputs(website, commits, analysis_start):
         c_out["tot_mal_pfiles"] = c_obj.tot_mal_pfiles
         c_out["malicious_files"] = {}
         for mal_file in c_obj.mal_files:
+            if (mal_file.filename not in c_out["malicious_files"]):
+                c_out["malicious_files"][mal_file.filename] = []
             file_obj = {}
+            file_obj["filepath"] = mal_file.filepath
             file_obj["state"] = mal_file.state
             file_obj["mime_type"] = mal_file.mime_type
             file_obj["extension"] = mal_file.extension
             file_obj["suspicious_tags"] = mal_file.suspicious_tags
             file_obj["is_hidden_file"] = mal_file.hidden_file
             file_obj["in_hidden_dir"] = mal_file.in_hidden_dir
-            c_out["malicious_files"][mal_file.filename] = file_obj
+            c_out["malicious_files"][mal_file.filename].append(file_obj)
         op["plugin_info"][c_obj.commit_id] = c_out
 
     analysis_end = time.time()
